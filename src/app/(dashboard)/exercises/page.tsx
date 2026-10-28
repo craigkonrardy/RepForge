@@ -1,0 +1,17 @@
+import { createClient } from "@/lib/supabase/server";
+import { addExercise } from "./actions";
+import { Dumbbell, Search } from "lucide-react";
+
+export default async function ExercisesPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user!.id).maybeSingle();
+  const { data: exercises, error } = await supabase.from("exercises").select("id,name,category,equipment,instructions,created_at").order("name");
+  const coach = profile?.role === "coach";
+
+  return <div><div><p className="text-sm text-zinc-500">MOVEMENT DATABASE</p><h1 className="mt-2 text-3xl font-black">Exercise library</h1><p className="mt-2 text-zinc-400">Keep your strength, conditioning, and HYROX movements organized.</p></div>
+    {coach && <form action={addExercise} className="mt-7 grid gap-3 rounded-2xl border border-white/10 bg-[#111512] p-4 sm:grid-cols-2 lg:grid-cols-5"><input name="name" required placeholder="Exercise name" className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm outline-none focus:border-lime-300"/><select name="category" className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm outline-none focus:border-lime-300"><option value="strength">Strength</option><option value="conditioning">Conditioning</option><option value="hyrox">HYROX</option><option value="mobility">Mobility</option><option value="other">Other</option></select><input name="equipment" placeholder="Equipment (optional)" className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm outline-none focus:border-lime-300"/><input name="instructions" placeholder="Short coaching cue" className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm outline-none focus:border-lime-300"/><button className="rounded-xl bg-lime-300 px-4 py-3 text-sm font-bold text-zinc-950 hover:bg-lime-200">+ Add exercise</button></form>}
+    <div className="mt-7 flex items-center justify-between"><h2 className="font-bold">All exercises</h2><span className="text-sm text-zinc-500">{exercises?.length ?? 0} movements</span></div>
+    {error ? <div className="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/5 p-4 text-sm text-amber-100">Could not load exercises. Apply the Supabase migration and verify your login role.</div> : exercises?.length ? <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{exercises.map(ex=><article key={ex.id} className="rounded-2xl border border-white/10 bg-[#111512] p-5"><div className="flex items-start justify-between gap-3"><div className="rounded-xl bg-lime-300/10 p-3 text-lime-300"><Dumbbell/></div><span className="rounded-full border border-white/10 px-2.5 py-1 text-xs capitalize text-zinc-400">{ex.category}</span></div><h3 className="mt-4 font-bold">{ex.name}</h3><p className="mt-1 text-sm text-zinc-500">{ex.equipment || "Equipment not specified"}</p>{ex.instructions && <p className="mt-3 text-sm leading-5 text-zinc-400">{ex.instructions}</p>}</article>)}</div> : <div className="mt-4 rounded-2xl border border-dashed border-white/15 p-10 text-center"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 text-zinc-400"><Search/></div><h3 className="mt-4 font-bold">Your library starts here</h3><p className="mt-2 text-sm text-zinc-500">Add your first exercise using the form above.</p></div>}
+  </div>;
+}

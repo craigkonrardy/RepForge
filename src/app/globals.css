@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #0b0e0d;
+  color: #f4f7f4;
+  font-family: Arial, Helvetica, sans-serif;
+}
+::selection { background: #c5f467; color: #10140c; }
+input, textarea, select { color-scheme: dark; }
